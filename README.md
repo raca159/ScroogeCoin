@@ -1,0 +1,1 @@
+Exercise to the class lectured in Universidade Federal do Espírito Santo. Notes taken in coursera https://www.coursera.org/learn/cryptocurrency/home/welcome.
