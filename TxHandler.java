@@ -5,8 +5,12 @@ public class TxHandler {
      * {@code utxoPool}. This should make a copy of utxoPool by using the UTXOPool(UTXOPool uPool)
      * constructor.
      */
+    public UTXOPool ledger;
+
     public TxHandler(UTXOPool utxoPool) {
         // IMPLEMENT THIS
+        this.ledger = utxoPool; 
+
     }
 
     /**
@@ -19,7 +23,13 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        // IMPLEMENT THIS
+        // 1 - Check if transaction uses unspet inputs
+        boolean isValid = false;
+        ArrayList<Input> insTx = tx.getInputs();
+        byte[] txHash = tx.getHash();
+        for (int i = 0; i < tx.numInputs() ; i++) {
+            Input in = insTx[i];
+        }
     }
 
     /**
