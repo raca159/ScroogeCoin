@@ -6,17 +6,17 @@ public class TxHandler {
      * constructor.
      */
     public UTXOPool ledger;
-    
+
     public TxHandler(UTXOPool utxoPool) {
         // IMPLEMENT THIS
         ledger = new UTXOPool(utxoPool);
-        
+
     }
 
     /**
      * @return true if:
-     * (1) all outputs claimed by {@code tx} are in the current UTXO pool, 
-     * (2) the signatures on each input of {@code tx} are valid, 
+     * (1) all outputs claimed by {@code tx} are in the current UTXO pool,
+     * (2) the signatures on each input of {@code tx} are valid,
      * (3) no UTXO is claimed multiple times by {@code tx},
      * (4) all of {@code tx}s output values are non-negative, and
      * (5) the sum of {@code tx}s input values is greater than or equal to the sum of its output
@@ -25,33 +25,76 @@ public class TxHandler {
     public boolean isValidTx(Transaction tx) {
         // IMPLEMENT THIS
         boolean isValid = false;
-        
+
         byte[] prevHash = tx.prevTxHash;
-        ArrayList<Output> outsTx = (tx.getOutputs()).clone();
-        
+        ArrayList<Input> insTx = (tx.getInputs()).clone();
+        int lengthIns = tx.numInputs;
+        ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();
+        for(int i = 0; i < lengthIns; i++){
+            newUtxos.add(new UTXO(prevHash, i));
+        }
+
         // hashmap of transactions outputs to see if there is double spending
-        HashMap<Output, int> doubleSpending = new HashMap<Ouput, int>();
-        for(Output buffer : outsTx){
+        HashMap<UTXO, int> doubleSpending = new HashMap<UTXO, int>();
+        for(UTXO buffer : newUtxos){
             doubleSpending.put(buffer, 0);
         }
-        
+
         // check if outputs are in UTXO pool
-        UTXO atualUtxo;
-        ArrayList<UTXO> allUtxos = ledger.getAllUTXO();
+        UTXO atst<UTXO> allUtxos = ledger.getAllUTXO();
         ArrayList<Output> allOuts = new ArrayList<Output>();
-        // getting all possible outputs to check
+        // getting all utxos and comparing if new ones already exist
         for(UTXO bufferUtxo : allUtxos){
-            for(Output bufferOut : ledger.getTxOutput(bufferUtxo)){
-                allOuts.add(bufferOut);
+                for(UTXO bufferNewOnes : newUtxos){
+                  if(bufferNewOnes.equals(bufferUtxo)){
+                    doubleSpending.put(bufferNewOnes, doubleSpending.get(bufferNewOnes)+1);
+                  }
+                }
             }
         }
-        
-        
-        
-        
-        
+
+        // checking (1)
+        if (doubleSpending.containsValue(1)){
+          isValid = false;
+        }
+        // checking (2)
+        for(Input newIns : insTx){
+          if (newIns.signature.equals) // check if each input signature equals to the signature of the block before it
+        }
+        // checking (3)
+        if (doubleSpending.containsValue(2)){
+          isValid = false;
+        }ualUtxo;
+        ArrayList<UTXO> allUtxos = ledger.getAllUTXO();
+        ArrayList<Output> allOuts = new ArrayList<Output>();
+        // getting all utxos and comparing if new ones already exist
+        for(UTXO bufferUtxo : allUtxos){
+                for(UTXO bufferNewOnes : newUtxos){
+                  if(bufferNewOnes.equals(bufferUtxo)){
+                    doubleSpending.put(bufferNewOnes, doubleSpending.get(bufferNewOnes)+1);
+                  }
+                }
+            }
+        }
+
+        // checking (1)
+        if (doubleSpending.containsValue(1)){
+          isValid = false;
+        }
+        // checking (2)
+        for(Input newIns : insTx){
+          if (newIns.signature.equals) // check if each input signature equals to the signature of the block before it
+        }
+        // checking (3)
+        if (doubleSpending.containsValue(2)){
+          isValid = false;
+        }
+
+
+
+
         return isValid;
-        
+
     }
 
     /**
@@ -60,7 +103,7 @@ public class TxHandler {
      * updating the current UTXO pool as appropriate.
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        
+
         ArrayList<Transaction> possibeTrans = new ArrayList<Transaction>();
         for(Transaction bufferTrans : possibleTxs){
             if(this.isValidTx(bufferTrans)){
@@ -69,7 +112,7 @@ public class TxHandler {
         }
         Transaction[] possiblesTx = new Transaction[possibeTrans.size()];
         possiblesTx = possibeTrans.toArray(possiblesTx);
-        
+
         //return possiblesTx;
         return possibleTxs
     }
