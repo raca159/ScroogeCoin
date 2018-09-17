@@ -5,8 +5,12 @@ public class TxHandler {
      * {@code utxoPool}. This should make a copy of utxoPool by using the UTXOPool(UTXOPool uPool)
      * constructor.
      */
+    public UTXOPool ledger;
+    
     public TxHandler(UTXOPool utxoPool) {
         // IMPLEMENT THIS
+        ledger = new UTXOPool(utxoPool);
+        
     }
 
     /**
@@ -20,6 +24,34 @@ public class TxHandler {
      */
     public boolean isValidTx(Transaction tx) {
         // IMPLEMENT THIS
+        boolean isValid = false;
+        
+        byte[] prevHash = tx.prevTxHash;
+        ArrayList<Output> outsTx = (tx.getOutputs()).clone();
+        
+        // hashmap of transactions outputs to see if there is double spending
+        HashMap<Output, int> doubleSpending = new HashMap<Ouput, int>();
+        for(Output buffer : outsTx){
+            doubleSpending.put(buffer, 0);
+        }
+        
+        // check if outputs are in UTXO pool
+        UTXO atualUtxo;
+        ArrayList<UTXO> allUtxos = ledger.getAllUTXO();
+        ArrayList<Output> allOuts = new ArrayList<Output>();
+        // getting all possible outputs to check
+        for(UTXO bufferUtxo : allUtxos){
+            for(Output bufferOut : ledger.getTxOutput(bufferUtxo)){
+                allOuts.add(bufferOut);
+            }
+        }
+        
+        
+        
+        
+        
+        return isValid;
+        
     }
 
     /**
@@ -28,7 +60,18 @@ public class TxHandler {
      * updating the current UTXO pool as appropriate.
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        // IMPLEMENT THIS
+        
+        ArrayList<Transaction> possibeTrans = new ArrayList<Transaction>();
+        for(Transaction bufferTrans : possibleTxs){
+            if(this.isValidTx(bufferTrans)){
+                possibleTrans.add(bufferTxs);
+            }
+        }
+        Transaction[] possiblesTx = new Transaction[possibeTrans.size()];
+        possiblesTx = possibeTrans.toArray(possiblesTx);
+        
+        //return possiblesTx;
+        return possibleTxs
     }
 
 }
