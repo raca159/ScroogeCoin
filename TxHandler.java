@@ -26,9 +26,12 @@ public class TxHandler {
   public boolean isValidTx(Transaction tx) {
 
     boolean isValid = true;
+    if(tx == null){ // trying to resolve NullPointerException
+      return false;
+    }
 
     // check if inputs are available for spending
-    // checking (1)
+    // checking (1) -- CORRECT
     for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
       if (!ledger.contains(bufferUtxo)) {
@@ -37,21 +40,22 @@ public class TxHandler {
     }
 
     // checking if signature of every input is equal to 'hash' of data from previous
-    // checking (2)
+    // checking (2) --casting some error remake it
     for (int i = 0; i < tx.numInputs(); i++) {
+      if(tx.getInput(i) == null){ // trying to resolve NullPointerException
+        return false;
+      }
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
       Transaction.Output bufferOutsUsed = ledger.getTxOutput(bufferUtxo);
-      boolean trueSignature = Crypto.verifySignature(bufferOutsUsed.address, tx.getRawDataToSign(i),
-          tx.getInput(i).signature);
+      boolean trueSignature = Crypto.verifySignature(bufferOutsUsed.address, tx.getRawDataToSign(i), tx.getInput(i).signature);
       if (!trueSignature) {
         isValid = false;
       }
-
     }
 
     // checking for double spending, check if a new utxo is already in a list of
     // news
-    // checking (3)
+   // checking (3) -- CORRECT
     UTXOPool bufferPool = new UTXOPool(); // new transactions made
     for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
@@ -72,10 +76,13 @@ public class TxHandler {
 
     // checking if sum is equals means getting the outputs from previous and
     // checking if is equals to the outputs from now
-    // checking (5)
+    // checking (5) - casting some error - remake
     double inputSum = 0;
     double outputSum = 0;
     for (int i = 0; i < tx.numInputs(); i++) {
+      if(tx.getInput(i) == null){ // trying to resolve NullPointerException
+        return false;
+      }
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
       inputSum = inputSum + ledger.getTxOutput(bufferUtxo).value;
     }
@@ -100,6 +107,11 @@ public class TxHandler {
 
     Set<Transaction> possibleTrans = new HashSet<>();
     for (Transaction bufferTrans : possibleTxs) {
+
+      if(bufferTrans == null){ // trying to resolve NullPointerException
+        continue;
+      }
+
       if (isValidTx(bufferTrans)) {
         possibleTrans.add(bufferTrans); // selecting only good ones
 
