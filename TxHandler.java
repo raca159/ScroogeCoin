@@ -26,7 +26,7 @@ public class TxHandler {
   public boolean isValidTx(Transaction tx) {
 
     boolean isValid = true;
-    if(tx == null){ // trying to resolve NullPointerException
+    if (tx == null) { // trying to resolve NullPointerException
       return false;
     }
 
@@ -40,14 +40,24 @@ public class TxHandler {
     }
 
     // checking if signature of every input is equal to 'hash' of data from previous
-    // checking (2) --casting some error remake it
+    // checking (2) -- CORRECT
     for (int i = 0; i < tx.numInputs(); i++) {
-      if(tx.getInput(i) == null){ // trying to resolve NullPointerException
+      if (tx.getInput(i) == null) { // trying to resolve NullPointerException
+        return false;
+      }
+      if (tx.getInput(i).signature == null) {
+        return false;
+      }
+      if (tx.getInput(i).prevTxHash == null) {
         return false;
       }
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
+      if (ledger.getTxOutput(bufferUtxo) == null) {
+        return false;
+      }
       Transaction.Output bufferOutsUsed = ledger.getTxOutput(bufferUtxo);
-      boolean trueSignature = Crypto.verifySignature(bufferOutsUsed.address, tx.getRawDataToSign(i), tx.getInput(i).signature);
+      boolean trueSignature = Crypto.verifySignature(bufferOutsUsed.address, tx.getRawDataToSign(i),
+          tx.getInput(i).signature);
       if (!trueSignature) {
         isValid = false;
       }
@@ -55,7 +65,7 @@ public class TxHandler {
 
     // checking for double spending, check if a new utxo is already in a list of
     // news
-   // checking (3) -- CORRECT
+    // checking (3) -- CORRECT
     UTXOPool bufferPool = new UTXOPool(); // new transactions made
     for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
@@ -80,16 +90,25 @@ public class TxHandler {
     double inputSum = 0;
     double outputSum = 0;
     for (int i = 0; i < tx.numInputs(); i++) {
-      if(tx.getInput(i) == null){ // trying to resolve NullPointerException
+      if (tx.getInput(i) == null) { // trying to resolve NullPointerException
+        return false;
+      }
+      if (tx.getInput(i).signature == null) {
+        return false;
+      }
+      if (tx.getInput(i).prevTxHash == null) {
         return false;
       }
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
+      if (ledger.getTxOutput(bufferUtxo) == null) {
+        return false;
+      }
       inputSum = inputSum + ledger.getTxOutput(bufferUtxo).value;
     }
     for (Transaction.Output bufferOuts : tx.getOutputs()) { // current outputs
       outputSum = outputSum + bufferOuts.value;
     }
-    if (outputSum < inputSum) { // means they are not equal
+    if (outputSum > inputSum) { // means they are not equal
       isValid = false;
     }
 
@@ -108,7 +127,7 @@ public class TxHandler {
     Set<Transaction> possibleTrans = new HashSet<>();
     for (Transaction bufferTrans : possibleTxs) {
 
-      if(bufferTrans == null){ // trying to resolve NullPointerException
+      if (bufferTrans == null) { // trying to resolve NullPointerException
         continue;
       }
 
