@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.*;
 
 public class TxHandler {
@@ -16,12 +15,11 @@ public class TxHandler {
   }
 
   /**
-   * @return true if:
-   *  (1) all outputs claimed by {@code tx} are in the current UTXO pool,
-   *  (2) the signatures on each input of {@code tx} are valid,
-   *  (3) no UTXO is claimed multiple times by {@code tx},
-   *  (4) all of {@code tx}s output values are non-negative, and
-   *  (5) the sum of {@code tx}s input values is greater than or equal to the sum of its
+   * @return true if: (1) all outputs claimed by {@code tx} are in the current
+   *         UTXO pool, (2) the signatures on each input of {@code tx} are valid,
+   *         (3) no UTXO is claimed multiple times by {@code tx}, (4) all of
+   *         {@code tx}s output values are non-negative, and (5) the sum of
+   *         {@code tx}s input values is greater than or equal to the sum of its
    *         output values; and false otherwise.
    */
 
@@ -29,12 +27,11 @@ public class TxHandler {
 
     boolean isValid = true;
 
-
     // check if inputs are available for spending
     // checking (1)
     for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
-      if(!ledger.contains(bufferUtxo)){
+      if (!ledger.contains(bufferUtxo)) {
         isValid = false; // means that input are not part of unspent pool
       }
     }
@@ -44,22 +41,23 @@ public class TxHandler {
     for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
       Transaction.Output bufferOutsUsed = ledger.getTxOutput(bufferUtxo);
-      boolean trueSignature = Crypto.verifySignature(bufferOutsUsed.address, tx.getRawDataToSign(i), tx.getInput(i).signature);
-      if (!trueSignature){
+      boolean trueSignature = Crypto.verifySignature(bufferOutsUsed.address, tx.getRawDataToSign(i),
+          tx.getInput(i).signature);
+      if (!trueSignature) {
         isValid = false;
       }
-    
+
     }
-    
-    // checking for double spending, check if a new utxo is already in a list of news
+
+    // checking for double spending, check if a new utxo is already in a list of
+    // news
     // checking (3)
-    UTXOPool bufferPool = new UTXOPool();    // new transactions made
+    UTXOPool bufferPool = new UTXOPool(); // new transactions made
     for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
-      if(bufferPool.contains(bufferUtxos)){ 
+      if (bufferPool.contains(bufferUtxos)) {
         isValid = false;
-      }
-      else{
+      } else {
         newUtxos.add(bufferUtxos, tx.getOutput(i));
       }
     }
@@ -72,7 +70,8 @@ public class TxHandler {
       }
     }
 
-    // checking if sum is equals means getting the outputs from previous and checking if is equals to the outputs from now
+    // checking if sum is equals means getting the outputs from previous and
+    // checking if is equals to the outputs from now
     // checking (5)
     double inputSum = 0;
     double outputSum = 0;
@@ -83,10 +82,9 @@ public class TxHandler {
     for (Transaction.Output bufferOuts : tx.getOutputs()) { // current outputs
       outputSum = outputSum + bufferOuts.value;
     }
-    if (outputSum < inputSum){ // means they are not equal
+    if (outputSum < inputSum) { // means they are not equal
       isValid = false;
     }
-
 
     return isValid;
 
@@ -100,20 +98,20 @@ public class TxHandler {
 
   public Transaction[] handleTxs(Transaction[] possibleTxs) {
 
-    ArrayList<Transaction> possibleTrans = new ArrayList<Transaction>();
+    Set<Transaction> possibleTrans = new HashSet<>();
     for (Transaction bufferTrans : possibleTxs) {
-      if (this.isValidTx(bufferTrans)) {
+      if (isValidTx(bufferTrans)) {
         possibleTrans.add(bufferTrans); // selecting only good ones
+
+        // must update pool of unspent
+        for (Transaction.Input ins : bufferTrans.getInputs()) {
+          for (int i = 0; i < bufferTrans.numOutputs(); i++) {
+            ledger.addUTXO(new UTXO(bufferTrans.getHash(), i), bufferTrans.getOutput(i));
+          }
+        }
+
       }
     }
-
-    // must update pool of unspent
-    for (Transaction bufferTrans : possibleTrans) {
-      for (int i = 0; i < bufferTrans.numOutputs(); i++) {
-        ledger.addUTXO(new UTXO(bufferTrans.getHash(), i), bufferTrans.getOutput(i));
-      }
-    }
-
 
     Transaction[] possiblesTx = new Transaction[possibleTrans.size()];
     possiblesTx = possibleTrans.toArray(possiblesTx);
