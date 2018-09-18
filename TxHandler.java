@@ -1,8 +1,4 @@
 import java.util.ArrayList;
-
-import Transaction.Input;
-import Transaction.Output;
-
 import java.util.*;
 
 public class TxHandler {
@@ -33,6 +29,20 @@ public class TxHandler {
 
     boolean isValid = true;
 
+
+    // checking for double spending, check if a new utxo is already in a list of news
+    // checking (3)
+    ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();    // new transactions made
+    for (int i = 0; i < tx.numInputs(); i++) {
+      UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
+      if(!newUtxos.contains(bufferUtxos)){
+        newUtxos.add(bufferUtxos);
+      }
+      else{ // means that it was already created, if falls here, then is double spending
+        isValid = false;
+      }
+    }
+
     // check if inputs are available for spending
     // checking (1)
     for (UTXO bufferUtxo : newUtxos) {
@@ -53,19 +63,6 @@ public class TxHandler {
     
     }
 
-    // checking for double spending, check if a new utxo is already in a list of news
-    // checking (3)
-    ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();    // new transactions made
-    for (int i = 0; i < tx.numInputs(); i++) {
-      UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
-      if(!newUtxos.contains(bufferUtxos)){
-        newUtxos.add(bufferUtxos);
-      }
-      else{ // means that it was already created, if falls here, then is double spending
-        isValid = false;
-      }
-    }
-
     // checking for non negative
     // checking (4) - CORRECT
     for (Transaction.Output bufferOut : tx.getOutputs()) {
@@ -83,7 +80,7 @@ public class TxHandler {
       Transaction.Output bufferOutsUsed = ledger.getTxOutput(bufferUtxo);
       inputSum = inputSum + bufferOutsUsed.value;
     }
-    for (Output bufferOuts : tx.getOutputs()) { // current outputs
+    for (Transaction.Output bufferOuts : tx.getOutputs()) { // current outputs
       outputSum = outputSum + bufferOuts.value;
     }
     if (!(outputSum == inputSum)){ // means they are not equal
