@@ -72,7 +72,7 @@ public class Transaction {
     public void removeInput(int index) {
         inputs.remove(index);
     }
-
+    
     public void removeInput(UTXO ut) {
         for (int i = 0; i < inputs.size(); i++) {
             Input in = inputs.get(i);
