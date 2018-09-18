@@ -1,7 +1,5 @@
 import java.util.ArrayList;
-
-import Transaction.Input;
-import Transaction.Output;
+import java.util.*;
 
 public class TxHandler {
 
@@ -30,67 +28,64 @@ public class TxHandler {
     // IMPLEMENT THIS
     boolean isValid = true;
 
-    byte[] prevHash = tx.prevTxHash;
-    ArrayList<Input> insTx = (tx.getInputs()).clone();
-    int lengthIns = tx.numInputs;
+    int lengthIns = tx.numInputs();
     ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();
     for (int i = 0; i < lengthIns; i++) {
-      newUtxos.add(new UTXO(prevHash, i));
+      newUtxos.add(new UTXO(tx.getInput(i).prevTxHash, i));
     }
 
     // hashmap of transactions outputs to see if there is double spending
-    HashMap<UTXO, Int> doubleSpending = new HashMap<UTXO, Int>();
+    HashMap<UTXO, Integer> doubleSpending = new HashMap<UTXO, Integer>();
     for (UTXO buffer : newUtxos) {
       doubleSpending.put(buffer, 0);
     }
 
     // check if outputs are in UTXO pool
     ArrayList<UTXO> allUtxos = ledger.getAllUTXO();
-    ArrayList<Output> allOuts = new ArrayList<Output>();
     // getting all utxos and comparing if new ones already exist
     for (UTXO bufferUtxo : allUtxos) {
       for (UTXO bufferNewOnes : newUtxos) {
-        if (bufferNewOnes.equals(bufferUtxo)) {
+        if (bufferNewOnes.compareTo(bufferUtxo) !=0) {
           doubleSpending.put(bufferNewOnes, doubleSpending.get(bufferNewOnes) + 1);
         }
       }
     }
 
-    // checking (1)
-    if (doubleSpending.containsValue(1)) {
-      isValid = false;
-    }
-    // checking (2)
-    for (Input newIns : insTx) {
-      if (newIns.signature.equals(newIns.prevTxHash)) { // check if each input signature equals to the signature of the block before it
-      }
-      else{
-        isValid = false;
-      }
-    }
-    // checking (3)
-    if (doubleSpending.containsValue(2)) {
-      isValid = false;
-    }
-    // checking (4)
-    for (Output bufferOut : tx.getOutputs()) {
-      if (bufferOut.value < 0){
+    // // checking (1)
+    // if (doubleSpending.containsValue(1)) {
+    //   isValid = false;
+    // }
+    // // checking (2)
+    // for (Transaction.Input newIns : tx.getInputs()) {
+    //   if (newIns.signature.equals(newIns.prevTxHash)) { // check if each input signature equals to the signature of the
+    //                                                     // block before it
+    //   } else {
+    //     isValid = false;
+    //   }
+    // }
+    // // checking (3)
+    // if (doubleSpending.containsValue(2)) {
+    //   isValid = false;
+    // }
+    // checking (4) - CORRECT
+    for (Transaction.Output bufferOut : tx.getOutputs()) {
+      if (bufferOut.value < 0) {
         isValid = false;
       }
     }
     // checking (5)
-    double sumIn = 0;
-    double sumOut = 0; 
-    for (int i = 0; i < tx.numInputs() ; i++) {
-      UTXO buffers = new UTXO(prevHash, i);
-      sumIn = sumIn + ledger.getTxOutput(buffers).value;
-    }
-    for (Output bufferOut : tx.getOutputs()) {
-      sumOut = sumOut + bufferOut.value;
-    }
-    if(sumIn != sumOut){
-      isValid = false;
-    }
+    // double sumIn = 0;
+    // double sumOut = 0;
+    // for (int i = 0; i < tx.numInputs(); i++) {
+    //   UTXO buffers = new UTXO(tx.getInput(i).prevTxHash, i);
+    //   sumIn = sumIn + ledger.getTxOutput(buffers).value;
+    // }
+    // for (Transaction.Output bufferOut : tx.getOutputs()) {
+    //   sumOut = sumOut + bufferOut.value;
+    // }
+    // if (sumIn < sumOut) {
+    //   isValid = false;
+    // }
 
     return isValid;
 
@@ -101,20 +96,20 @@ public class TxHandler {
    * checking each transaction for correctness, returning a mutually valid array
    * of accepted transactions, and updating the current UTXO pool as appropriate.
    */
-  
+
   public Transaction[] handleTxs(Transaction[] possibleTxs) {
 
-    ArrayList<Transaction> possibeTrans = new ArrayList<Transaction>();
+    ArrayList<Transaction> possibleTrans = new ArrayList<Transaction>();
     for (Transaction bufferTrans : possibleTxs) {
       if (this.isValidTx(bufferTrans)) {
-        possibleTrans.add(bufferTxs);
+        possibleTrans.add(bufferTrans);
       }
     }
-    Transaction[] possiblesTx = new Transaction[possibeTrans.size()];
-    possiblesTx = possibeTrans.toArray(possiblesTx);
+    Transaction[] possiblesTx = new Transaction[possibleTrans.size()];
+    possiblesTx = possibleTrans.toArray(possiblesTx);
 
-    // return possiblesTx;
-    return possibleTxs;
+    return possiblesTx;
+    // return possibleTxs;
   }
 
 }
