@@ -104,18 +104,18 @@ public class TxHandler {
         possibleTrans.add(bufferTrans); // selecting only good ones
 
         // must update pool of unspent
-          // removing spent ones
-          for (Transaction.Input ins : bufferTrans.getInputs()) {
-            for (int i = 0; i < bufferTrans.numOutputs(); i++) {
-              UTXO bufferNewUtxo = new UTXO(ins.prevTxHash, ins.outputIndex);
-              ledger.removeUTXO(bufferNewUtxo); // was adding to UTXOpoll instead of removing
-            }
-          }
-          // adding new unspent ones
+        // removing spent ones
+        for (Transaction.Input ins : bufferTrans.getInputs()) {
           for (int i = 0; i < bufferTrans.numOutputs(); i++) {
-            UTXO bufferNewUtxo = new UTXO(bufferTrans.getHash(), i);
-            ledger.addUTXO(bufferNewUtxo, bufferTrans.getOutput(i));
+            UTXO bufferNewUtxo = new UTXO(ins.prevTxHash, ins.outputIndex);
+            ledger.removeUTXO(bufferNewUtxo); // was adding to UTXOpoll instead of removing
           }
+        }
+        // adding new unspent ones
+        for (int i = 0; i < bufferTrans.numOutputs(); i++) {
+          UTXO bufferNewUtxo = new UTXO(bufferTrans.getHash(), i);
+          ledger.addUTXO(bufferNewUtxo, bufferTrans.getOutput(i));
+        }
 
       }
     }
