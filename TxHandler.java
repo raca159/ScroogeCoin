@@ -1,5 +1,8 @@
 import java.util.ArrayList;
 
+import Transaction.Input;
+import Transaction.Output;
+
 public class TxHandler {
 
   /**
@@ -25,7 +28,7 @@ public class TxHandler {
 
   public boolean isValidTx(Transaction tx) {
     // IMPLEMENT THIS
-    boolean isValid = false;
+    boolean isValid = true;
 
     byte[] prevHash = tx.prevTxHash;
     ArrayList<Input> insTx = (tx.getInputs()).clone();
@@ -59,11 +62,33 @@ public class TxHandler {
     }
     // checking (2)
     for (Input newIns : insTx) {
-      if (newIns.signature.equals) { // check if each input signature equals to the signature of the block before it
+      if (newIns.signature.equals(newIns.prevTxHash)) { // check if each input signature equals to the signature of the block before it
+      }
+      else{
+        isValid = false;
       }
     }
     // checking (3)
     if (doubleSpending.containsValue(2)) {
+      isValid = false;
+    }
+    // checking (4)
+    for (Output bufferOut : tx.getOutputs()) {
+      if (bufferOut.value < 0){
+        isValid = false;
+      }
+    }
+    // checking (5)
+    double sumIn = 0;
+    double sumOut = 0; 
+    for (int i = 0; i < tx.numInputs() ; i++) {
+      UTXO buffers = new UTXO(prevHash, i);
+      sumIn = sumIn + ledger.getTxOutput(buffers).value;
+    }
+    for (Output bufferOut : tx.getOutputs()) {
+      sumOut = sumOut + bufferOut.value;
+    }
+    if(sumIn != sumOut){
       isValid = false;
     }
 
