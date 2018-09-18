@@ -106,9 +106,18 @@ public class TxHandler {
     ArrayList<Transaction> possibleTrans = new ArrayList<Transaction>();
     for (Transaction bufferTrans : possibleTxs) {
       if (this.isValidTx(bufferTrans)) {
-        possibleTrans.add(bufferTrans);
+        possibleTrans.add(bufferTrans); // selecting only good ones
       }
     }
+
+    // must update pool of unspent
+    for (Transaction bufferTrans : possibleTrans) {
+      for (int i = 0; i < bufferTrans.numOutputs(); i++) {
+        ledger.addUTXO(new UTXO(bufferTrans.getHash(), i), bufferTrans.getOutput(i));
+      }
+    }
+
+
     Transaction[] possiblesTx = new Transaction[possibleTrans.size()];
     possiblesTx = possibleTrans.toArray(possiblesTx);
 
