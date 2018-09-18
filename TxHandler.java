@@ -11,7 +11,7 @@ public class TxHandler {
   public UTXOPool ledger;
 
   public TxHandler(UTXOPool utxoPool) {
-    ledger = new UTXOPool(utxoPool);
+    this.ledger = new UTXOPool(utxoPool);
 
   }
 
@@ -30,22 +30,10 @@ public class TxHandler {
     boolean isValid = true;
 
 
-    // checking for double spending, check if a new utxo is already in a list of news
-    // checking (3)
-    ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();    // new transactions made
-    for (int i = 0; i < tx.numInputs(); i++) {
-      UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
-      if(!newUtxos.contains(bufferUtxos)){
-        newUtxos.add(bufferUtxos);
-      }
-      else{ // means that it was already created, if falls here, then is double spending
-        isValid = false;
-      }
-    }
-
     // check if inputs are available for spending
     // checking (1)
-    for (UTXO bufferUtxo : newUtxos) {
+    for (int i = 0; i < tx.numInputs(); i++) {
+      UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
       if(!ledger.contains(bufferUtxo)){
         isValid = false; // means that input are not part of unspent pool
       }
@@ -62,6 +50,19 @@ public class TxHandler {
       }
     
     }
+    
+    // checking for double spending, check if a new utxo is already in a list of news
+    // checking (3)
+    UTXOPool bufferPool = new UTXOPool();    // new transactions made
+    for (int i = 0; i < tx.numInputs(); i++) {
+      UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
+      if(bufferPool.contains(bufferUtxos)){ 
+        isValid = false;
+      }
+      else{
+        newUtxos.add(bufferUtxos, tx.getOutput(i));
+      }
+    }
 
     // checking for non negative
     // checking (4) - CORRECT
@@ -75,15 +76,14 @@ public class TxHandler {
     // checking (5)
     double inputSum = 0;
     double outputSum = 0;
-    for (int i = 0; i < tx.numInputs(); i++) { // previous outputs
+    for (int i = 0; i < tx.numInputs(); i++) {
       UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
-      Transaction.Output bufferOutsUsed = ledger.getTxOutput(bufferUtxo);
-      inputSum = inputSum + bufferOutsUsed.value;
+      inputSum = inputSum + ledger.getTxOutput(bufferUtxo).value;
     }
     for (Transaction.Output bufferOuts : tx.getOutputs()) { // current outputs
       outputSum = outputSum + bufferOuts.value;
     }
-    if (!(outputSum == inputSum)){ // means they are not equal
+    if (outputSum < inputSum){ // means they are not equal
       isValid = false;
     }
 
