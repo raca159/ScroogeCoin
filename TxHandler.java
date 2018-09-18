@@ -58,7 +58,7 @@ public class TxHandler {
       if (bufferPool.contains(bufferUtxos)) {
         isValid = false;
       } else {
-        newUtxos.add(bufferUtxos, tx.getOutput(i));
+        bufferPool.addUTXO(bufferUtxos, tx.getOutput(i));
       }
     }
 
