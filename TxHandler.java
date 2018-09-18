@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 
 import Transaction.Input;
+import Transaction.Output;
 
 import java.util.*;
 
@@ -32,12 +33,6 @@ public class TxHandler {
 
     boolean isValid = true;
 
-    // new transactions made
-    ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();
-    for (int i = 0; i < tx.numInputs(); i++) {
-      newUtxos.add(new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex));
-    }
-
     // check if inputs are available for spending
     // checking (1)
     for (UTXO bufferUtxo : newUtxos) {
@@ -58,12 +53,41 @@ public class TxHandler {
     
     }
 
+    // checking for double spending, check if a new utxo is already in a list of news
+    // checking (3)
+    ArrayList<UTXO> newUtxos = new ArrayList<UTXO>();    // new transactions made
+    for (int i = 0; i < tx.numInputs(); i++) {
+      UTXO bufferUtxos = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
+      if(!newUtxos.contains(bufferUtxos)){
+        newUtxos.add(bufferUtxos);
+      }
+      else{ // means that it was already created, if falls here, then is double spending
+        isValid = false;
+      }
+    }
+
     // checking for non negative
     // checking (4) - CORRECT
     for (Transaction.Output bufferOut : tx.getOutputs()) {
       if (bufferOut.value < 0) {
         isValid = false;
       }
+    }
+
+    // checking if sum is equals means getting the outputs from previous and checking if is equals to the outputs from now
+    // checking (5)
+    double inputSum = 0;
+    double outputSum = 0;
+    for (int i = 0; i < tx.numInputs(); i++) { // previous outputs
+      UTXO bufferUtxo = new UTXO(tx.getInput(i).prevTxHash, tx.getInput(i).outputIndex);
+      Transaction.Output bufferOutsUsed = ledger.getTxOutput(bufferUtxo);
+      inputSum = inputSum + bufferOutsUsed.value;
+    }
+    for (Output bufferOuts : tx.getOutputs()) { // current outputs
+      outputSum = outputSum + bufferOuts.value;
+    }
+    if (!(outputSum == inputSum)){ // means they are not equal
+      isValid = false;
     }
 
 
