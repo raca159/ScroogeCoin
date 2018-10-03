@@ -84,10 +84,6 @@ public class Transaction {
         }
     }
 
-    djfndoifsndifsdf
-    public void sadsa() {
-        print('dsadas');
-    }
 
     public byte[] getRawDataToSign(int index) {
         // ith input and all outputs
